@@ -1,4 +1,2 @@
-from fuzzer.fuzz import Fuzzer
-from fuzzer.runner import Runner, RunState
-
-__all__ = ['Fuzzer', 'Runner', 'RunState']
+__all__ = ['Runner', 'RunStatus']
+from .runner import Runner, RunStatus
