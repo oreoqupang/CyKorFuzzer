@@ -1,6 +1,7 @@
 import subprocess
 import signal
 import enum
+import ptrace.debugger
 
 class RunStatus(enum.Enum):
     PASS=1
@@ -51,3 +52,42 @@ class Runner(object):
             return RunStatus.EXCEPT
         
         return RunStatus.PASS
+
+    def is_hit(self, target_addr):
+        try:
+            proc_pid = ptrace.debugger.child.createChild(self.args, False)
+            
+            debugger = ptrace.debugger.PtraceDebugger()
+            proc = debugger.addProcess(proc_pid, True)
+            proc.createBreakpoint(target_addr)
+            
+            res = False
+            proc.cont()
+            while 1:
+                event = proc.waitEvent()
+                event_cls = event.__class__
+
+                if event_cls == ptrace.debugger.ProcessExit:
+                    print("child exit")
+                    proc.detach()
+                    debugger.quit()
+                    break
+
+                if event_cls != ptrace.debugger.ProcessSignal:
+                    raise event
+
+                if event.signum == signal.SIGTRAP and proc.getInstrPointer() == target_addr+1:
+                    print("hit!")
+                    res = True
+
+                signum = event.signum
+                if signum not in (signal.SIGTRAP, signal.SIGSTOP):
+                    proc.cont(signum)
+                else:
+                    proc.cont()
+
+            return res
+
+        except subprocess.SubprocessError as e:
+            print("Popen error", e)
+            return RunStatus.EXCEPT

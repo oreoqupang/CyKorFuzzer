@@ -13,5 +13,10 @@ class TestRunner(unittest.TestCase):
         print("[2] return code : ", result)
         self.assertEqual(result, RunStatus.CRASH)
 
+    def test_is_hit(self):
+        result = Runner('./test', [str(signal.SIGUSR2.value)], b'AA', 0.2, False).is_hit(0x40065d)
+        print("[3] hit result : ", result)
+        self.assertEqual(result, False)
+
 if __name__ == "__main__":
     unittest.main()
