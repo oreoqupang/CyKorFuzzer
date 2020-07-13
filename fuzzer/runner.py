@@ -9,8 +9,11 @@ class RunStatus(enum.Enum):
     EXCEPT=4
 
 class Runner(object):
-    def __init__(self, bin_name, args, _input, timeout, extra_signal=None):
+    def __init__(self, bin_name, args, _input, timeout, shell=False, extra_signal=None):
         self.args = [bin_name] + args
+        if shell == True:
+            self.args = " ".join(self.args)
+        self.shell = shell
         self.input = _input
         self.timeout = timeout
         self.default_signal = [signal.SIGSEGV, signal.SIGHUP]
@@ -18,17 +21,25 @@ class Runner(object):
     
     def run(self):
         try:
-            running = subprocess.Popen(self.args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr= subprocess.PIPE)
+            running = subprocess.Popen(self.args, stdin=subprocess.PIPE, 
+                stdout=subprocess.PIPE,
+                stderr = subprocess.PIPE,
+                shell=self.shell)
 
             try:
                 (out, err)= running.communicate(self.input, self.timeout)
+                signal = None
+                if self.shell == True:
+                    if running.returncode > 128 and running.returncode < 255:
+                        signal = running.returncode - 128
+                else:
+                    if running.returncode < 0:
+                        signal = -running.returncode
                 
-                if running.returncode < 0:
-                    signal = -running.returncode
-                    if signal in self.default_signal:
-                        return RunStatus.CRASH
-                    elif (self.extra_signal != None) and  (signal in self.extra_signal):
-                        return Runstatus.USER_CRASH
+                if signal in self.default_signal:
+                    return RunStatus.CRASH
+                elif (self.extra_signal != None) and  (signal in self.extra_signal):
+                    return Runstatus.USER_CRASH
                     
             except subprocess.TimeoutExpired as e:
                 print("time out!!", e)
