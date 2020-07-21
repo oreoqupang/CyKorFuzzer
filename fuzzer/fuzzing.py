@@ -6,7 +6,7 @@ kernel32=windll.kernel32
 
 class fuzzing:
     #[O]PID 얻기
-    #   - [O] 프로세스 목록 얻기 : get_process_id 
+    #   - [O] 프로세스 목록 얻기 : get_process_id )
     #   - [O] 원하는 프로세스 열기 : open_process
 
     #[_]PID에 해당하는 메모리 정보, 레지스터 정보 얻기
