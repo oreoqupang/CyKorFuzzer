@@ -91,7 +91,8 @@ class fuzzing:
             self.pid=self.process_information.dwProcessId
             print("[*] Successfully launched the process.")
             print("[*] PID: %d" %self.pid)
-            self.h_Process=self.open_process(self.process_information.dwProcessId)
+            #self.h_Process=self.open_process(self.process_information.dwProcessId)
+            self.h_Process=self.process_information.hProcess  
         else:
             print ("[*] Error: 0x%08x" %kernel32.GetLastError())
 
